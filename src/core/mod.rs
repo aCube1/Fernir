@@ -1,9 +1,6 @@
-use sdl2::{
-    Sdl, VideoSubsystem,
-    event::Event,
-    render::WindowCanvas,
-};
+use sdl2::{event::Event, render::WindowCanvas, Sdl, VideoSubsystem};
 
+pub mod scene;
 pub mod timer;
 
 #[allow(dead_code)]
@@ -11,7 +8,10 @@ pub struct Core {
     sdl_ctx: Sdl,
     video: VideoSubsystem,
     canvas: WindowCanvas,
+
     timer: timer::Timer,
+    scene_manager: scene::SceneManager,
+
     running: bool,
 }
 
@@ -32,6 +32,7 @@ impl Default for CoreBuilder {
 }
 
 impl CoreBuilder {
+    #[inline]
     pub fn new() -> Self {
         CoreBuilder::default()
     }
@@ -55,7 +56,8 @@ impl CoreBuilder {
         self.with_width(width).with_height(height)
     }
 
-    pub fn build(self) -> Result<Core, String> {
+    pub fn build<S>(self, main_scene: S)-> Result<Core, String>
+    where S: scene::Scene + 'static {
         let sdl_ctx = sdl2::init()?;
         let video = sdl_ctx.video()?;
 
@@ -75,11 +77,16 @@ impl CoreBuilder {
 
         let timer = timer::Timer::new(&sdl_ctx)?;
 
+        let mut scene_manager = scene::SceneManager::new();
+        scene_manager.add_state("MAIN", main_scene)?;
+        scene_manager.set_active_scene("MAIN")?;
+
         Ok(Core {
             sdl_ctx,
             video,
             canvas,
             timer,
+            scene_manager,
             running: true,
         })
     }
@@ -92,7 +99,7 @@ impl Core {
         while self.running {
             for event in event_pump.poll_iter() {
                 match event {
-                    Event::Quit{..} => self.running = false,
+                    Event::Quit { .. } => self.running = false,
                     _ => (),
                 }
             }
