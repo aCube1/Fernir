@@ -1,5 +1,6 @@
-use sdl2::render;
 use std::collections::HashMap;
+use sdl2::render;
+use crate::core::error::{FerError, FerResult};
 
 pub trait Scene {
     fn load(&mut self);
@@ -23,12 +24,12 @@ impl SceneManager {
         }
     }
 
-    pub fn add_scene<S>(&mut self, name: &'static str, mut scene: S) -> Result<(), String>
+    pub fn add_scene<S>(&mut self, name: &'static str, mut scene: S) -> FerResult<()>
     where
         S: Scene + 'static,
     {
         if self.scenes.contains_key(name) {
-            return Err("Scene Name Has Already Been Taken!".into());
+            return Err(FerError::SceneError("Scene Name Has Already Been Taken!".into()));
         }
 
         scene.load();
@@ -38,9 +39,9 @@ impl SceneManager {
         Ok(())
     }
 
-    pub fn remove_scene(&mut self, name: &str) -> Result<(), String> {
+    pub fn remove_scene(&mut self, name: &str) -> FerResult<()> {
         if !self.scenes.contains_key(name) || name == "MAIN" {
-            return Err("Cannot Delete Inexistent/MAIN Scene".into());
+            return Err(FerError::SceneError("Cannot Delete Inexistent/MAIN Scene".into()));
         }
 
         let mut scene = self.scenes.remove(name).unwrap();
@@ -49,9 +50,9 @@ impl SceneManager {
         Ok(())
     }
 
-    pub fn set_active_scene(&mut self, name: &'static str) -> Result<&'static str, String> {
+    pub fn set_active_scene(&mut self, name: &'static str) -> FerResult<&'static str> {
         if !self.scenes.contains_key(name) {
-            return Err("Scene Doesn't Exist!".into())
+            return Err(FerError::SceneError("Scene Doesn't Exist!".into()))
         }
 
         let last_scene = self.active_scene;

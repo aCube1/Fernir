@@ -1,5 +1,8 @@
 use sdl2::{event::Event, render::WindowCanvas, Sdl, VideoSubsystem};
 
+pub mod error;
+use error::*;
+
 pub mod scene;
 pub mod timer;
 
@@ -57,10 +60,10 @@ impl CoreBuilder {
         self.with_width(width).with_height(height)
     }
 
-    pub fn build<S>(self, main_scene: S)-> Result<Core, String>
+    pub fn build<S>(self, main_scene: S)-> FerResult<Core>
     where S: scene::Scene + 'static {
-        let sdl_ctx = sdl2::init()?;
-        let video = sdl_ctx.video()?;
+        let sdl_ctx = sdl2::init().map_err(FerError::CoreError)?;
+        let video = sdl_ctx.video().map_err(FerError::CoreError)?;
 
         let window = video
             .window(&self.title[..], self.width, self.height)
@@ -76,7 +79,7 @@ impl CoreBuilder {
             .build()
             .expect("Couldn't Create Window Canvas");
 
-        let timer = timer::Timer::new(&sdl_ctx)?;
+        let timer = timer::Timer::new(&sdl_ctx).map_err(FerError::CoreError)?;
 
         let mut scene_manager = scene::SceneManager::new();
         scene_manager.add_scene("MAIN", main_scene)?;
