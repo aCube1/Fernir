@@ -31,6 +31,7 @@ impl Default for CoreBuilder {
     }
 }
 
+#[allow(dead_code)]
 impl CoreBuilder {
     #[inline]
     pub fn new() -> Self {
@@ -78,7 +79,7 @@ impl CoreBuilder {
         let timer = timer::Timer::new(&sdl_ctx)?;
 
         let mut scene_manager = scene::SceneManager::new();
-        scene_manager.add_state("MAIN", main_scene)?;
+        scene_manager.add_scene("MAIN", main_scene)?;
         scene_manager.set_active_scene("MAIN")?;
 
         Ok(Core {
@@ -105,7 +106,10 @@ impl Core {
             }
 
             self.timer.update();
+            self.scene_manager.update(self.timer.get_dt())?;
+
             self.canvas.clear();
+            self.scene_manager.render(&mut self.canvas)?;
             self.canvas.present();
         }
 

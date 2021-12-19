@@ -5,8 +5,8 @@ pub struct Timer {
 
     fps: u32,
     dt: f64,
-    fps_timer: f64,
-    last_frame: u64,
+    fps_timer: f32,
+    last_frame: u32,
     fps_count: u32,
 }
 
@@ -25,11 +25,8 @@ impl Timer {
     }
 
     pub fn update(&mut self) {
-        self.last_frame = 0;
-        self.fps_count = 0;
-
-        self.dt = (self.timer.performance_counter() - self.last_frame) as f64 / 1000.0;
-        self.fps_timer += self.dt;
+        self.dt = (self.timer.ticks() - self.last_frame) as f64 / 1000.0;
+        self.fps_timer += self.dt as f32;
         if self.fps_timer >= 1.0 {
             self.fps = self.fps_count;
             self.fps_count = 0;
@@ -37,6 +34,15 @@ impl Timer {
         }
 
         self.fps_count += 1;
-        self.last_frame = self.timer.performance_counter();
+        self.last_frame = self.timer.ticks();
+    }
+
+    #[inline]
+    pub fn get_fps(&self) -> u32 {
+        self.fps
+    }
+    #[inline]
+    pub fn get_dt(&self) -> f64 {
+        self.dt
     }
 }
