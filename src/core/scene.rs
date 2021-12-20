@@ -24,12 +24,12 @@ impl SceneManager {
         }
     }
 
-    pub fn add_scene<S>(&mut self, name: &'static str, mut scene: S) -> FerResult<()>
+    pub fn add_scene<S>(&mut self, name: &'static str, mut scene: S) -> FerResult
     where
         S: Scene + 'static,
     {
         if self.scenes.contains_key(name) {
-            return Err(FerError::SceneError("Scene Name Has Already Been Taken!".into()));
+            return Err(FerError::SceneError("Scene Name Has Already Been Taken!"));
         }
 
         scene.load();
@@ -39,9 +39,9 @@ impl SceneManager {
         Ok(())
     }
 
-    pub fn remove_scene(&mut self, name: &str) -> FerResult<()> {
+    pub fn remove_scene(&mut self, name: &str) -> FerResult {
         if !self.scenes.contains_key(name) || name == "MAIN" {
-            return Err(FerError::SceneError("Cannot Delete Inexistent/MAIN Scene".into()));
+            return Err(FerError::SceneError("Cannot Delete Inexistent/MAIN Scene"));
         }
 
         let mut scene = self.scenes.remove(name).unwrap();
@@ -52,7 +52,7 @@ impl SceneManager {
 
     pub fn set_active_scene(&mut self, name: &'static str) -> FerResult<&'static str> {
         if !self.scenes.contains_key(name) {
-            return Err(FerError::SceneError("Scene Doesn't Exist!".into()))
+            return Err(FerError::SceneError("Scene Doesn't Exist!"))
         }
 
         let last_scene = self.active_scene;

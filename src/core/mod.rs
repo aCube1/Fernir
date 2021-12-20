@@ -62,24 +62,24 @@ impl CoreBuilder {
 
     pub fn build<S>(self, main_scene: S)-> FerResult<Core>
     where S: scene::Scene + 'static {
-        let sdl_ctx = sdl2::init().map_err(FerError::CoreError)?;
-        let video = sdl_ctx.video().map_err(FerError::CoreError)?;
+        let sdl_ctx = sdl2::init().map_err(FerError::SdlInitError)?;
+        let video = sdl_ctx.video().map_err(FerError::SdlVideoError)?;
 
         let window = video
             .window(&self.title[..], self.width, self.height)
             .position_centered()
             .opengl()
             .build()
-            .expect("Couldn't Initialize Window");
+            .map_err(FerError::SdlWindowError)?;
 
         let canvas = window
             .into_canvas()
             .accelerated()
             .present_vsync()
             .build()
-            .expect("Couldn't Create Window Canvas");
+            .map_err(FerError::SdlRenderError)?;
 
-        let timer = timer::Timer::new(&sdl_ctx).map_err(FerError::CoreError)?;
+        let timer = timer::Timer::new(&sdl_ctx)?;
 
         let mut scene_manager = scene::SceneManager::new();
         scene_manager.add_scene("MAIN", main_scene)?;

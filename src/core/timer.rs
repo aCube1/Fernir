@@ -1,4 +1,5 @@
 use sdl2::TimerSubsystem;
+use crate::core::error::*;
 
 pub struct Timer {
     timer: TimerSubsystem,
@@ -11,8 +12,8 @@ pub struct Timer {
 }
 
 impl Timer {
-    pub fn new(sdl_cxt: &sdl2::Sdl) -> Result<Self, String> {
-        let timer = sdl_cxt.timer()?;
+    pub fn new(sdl_cxt: &sdl2::Sdl) -> FerResult<Self> {
+        let timer = sdl_cxt.timer().map_err(FerError::SdlTimerError)?;
 
         Ok(Timer {
             timer,
