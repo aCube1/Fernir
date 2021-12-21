@@ -1,7 +1,7 @@
 use sdl2::{event::Event, render::WindowCanvas, Sdl, VideoSubsystem};
 
 pub mod error;
-use error::*;
+pub use error::*;
 
 pub mod scene;
 pub mod timer;
@@ -12,10 +12,14 @@ pub struct Core {
     video: VideoSubsystem,
     canvas: WindowCanvas,
 
-    timer: timer::Timer,
-    scene_manager: scene::SceneManager,
+    pub timer: timer::Timer,
+    pub scene_manager: scene::SceneManager,
 
     running: bool,
+}
+
+pub struct GameContext<'a> {
+    pub timer: &'a timer::Timer,
 }
 
 pub struct CoreBuilder {
@@ -79,7 +83,7 @@ impl CoreBuilder {
             .build()
             .map_err(FerError::SdlRenderError)?;
 
-        let timer = timer::Timer::new(&sdl_ctx)?;
+        let timer = timer::Timer::new();
 
         let mut scene_manager = scene::SceneManager::new();
         scene_manager.add_scene("MAIN", main_scene)?;
@@ -97,10 +101,11 @@ impl CoreBuilder {
 }
 
 impl Core {
-    pub fn run(mut self) -> Result<(), String> {
+    pub fn run(mut self) -> FerResult {
         let mut event_pump = self.sdl_ctx.event_pump().unwrap();
 
         while self.running {
+            /* NOTE: PlaceHolder */
             for event in event_pump.poll_iter() {
                 match event {
                     Event::Quit { .. } => self.running = false,
@@ -108,11 +113,15 @@ impl Core {
                 }
             }
 
+
             self.timer.update();
-            self.scene_manager.update(self.timer.get_dt())?;
+
+            let ctx = GameContext {
+                timer: &self.timer,
+            };
 
             self.canvas.clear();
-            self.scene_manager.render(&mut self.canvas)?;
+            self.scene_manager.process(&ctx)?;
             self.canvas.present();
         }
 

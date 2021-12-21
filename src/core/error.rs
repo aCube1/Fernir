@@ -7,7 +7,6 @@ pub type FerResult<T = ()> = Result<T, FerError>;
 pub enum FerError {
     /* SDL Errors */
     SdlInitError(String),
-    SdlTimerError(String),
     SdlVideoError(String),
     SdlWindowError(WindowBuildError),
     SdlRenderError(IntegerOrSdlError),
@@ -20,7 +19,6 @@ impl Display for FerError {
     fn fmt(&self, format: &mut Formatter<'_>) -> fmt::Result {
         match self {
             FerError::SdlInitError(msg) => writeln!(format, "[SDL_Init Error]: {}", msg),
-            FerError::SdlTimerError(msg) => writeln!(format, "[SDL_Timer Error]: {}", msg),
             FerError::SdlVideoError(msg) => writeln!(format, "[SDL_Video Error]: {}", msg),
             FerError::SdlWindowError(error) => {
                 match error {

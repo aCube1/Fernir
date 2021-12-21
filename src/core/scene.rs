@@ -1,11 +1,10 @@
 use std::collections::HashMap;
-use sdl2::render;
-use crate::core::error::{FerError, FerResult};
+use crate::core::{self, error::{FerError, FerResult}};
 
 pub trait Scene {
-    fn load(&mut self);
-    fn update(&mut self, _dt: f64);
-    fn render(&mut self, _canvas: &mut render::WindowCanvas) -> Result<(), String>;
+    fn load(&mut self) -> FerResult;
+    fn update(&mut self, _ctx: &core::GameContext) -> FerResult;
+    fn render(&mut self, _ctx: &core::GameContext) -> FerResult;
 
     fn at_remove(&mut self) {}
 }
@@ -32,7 +31,7 @@ impl SceneManager {
             return Err(FerError::SceneError("Scene Name Has Already Been Taken!"));
         }
 
-        scene.load();
+        scene.load()?;
         self.scenes.insert(name, Box::new(scene));
         println!("Scene: {} Created Succefully", name);
 
@@ -61,16 +60,10 @@ impl SceneManager {
         Ok(last_scene)
     }
 
-    pub fn update(&mut self, dt: f64) -> Result<(), String> {
+    pub fn process(&mut self, ctx: &core::GameContext) -> FerResult {
         let scene = self.scenes.get_mut(self.active_scene).unwrap().as_mut();
-        scene.update(dt);
-
-        Ok(())
-    }
-
-    pub fn render(&mut self, canvas: &mut render::WindowCanvas) -> Result<(), String> {
-        let scene = self.scenes.get_mut(self.active_scene).unwrap().as_mut();
-        scene.render(canvas)?;
+        scene.update(ctx)?;
+        scene.render(ctx)?;
 
         Ok(())
     }
