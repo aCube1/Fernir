@@ -1,3 +1,4 @@
+/* use std::{rc::Rc, cell::RefCell}; */
 use sdl2::{event::Event, render::WindowCanvas, Sdl, VideoSubsystem};
 
 pub mod error;
@@ -12,14 +13,15 @@ pub struct Core {
     video: VideoSubsystem,
     canvas: WindowCanvas,
 
-    pub timer: timer::Timer,
-    pub scene_manager: scene::SceneManager,
+    timer: timer::Timer,
+    scene_manager: scene::SceneManager,
 
     running: bool,
 }
 
 pub struct GameContext<'a> {
     pub timer: &'a timer::Timer,
+    pub canvas: &'a mut WindowCanvas,
 }
 
 pub struct CoreBuilder {
@@ -85,9 +87,7 @@ impl CoreBuilder {
 
         let timer = timer::Timer::new();
 
-        let mut scene_manager = scene::SceneManager::new();
-        scene_manager.add_scene("MAIN", main_scene)?;
-        scene_manager.set_active_scene("MAIN")?;
+        let scene_manager = scene::SceneManager::new(main_scene)?;
 
         Ok(Core {
             sdl_ctx,
@@ -116,12 +116,11 @@ impl Core {
 
             self.timer.update();
 
-            let ctx = GameContext {
-                timer: &self.timer,
-            };
-
             self.canvas.clear();
-            self.scene_manager.process(&ctx)?;
+            self.scene_manager.process(GameContext {
+                timer: &self.timer,
+                canvas: &mut self.canvas,
+            })?;
             self.canvas.present();
         }
 
