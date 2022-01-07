@@ -1,9 +1,9 @@
-use sdl2::{
-    Sdl, VideoSubsystem,
-    event::Event,
-    render::WindowCanvas,
-};
+use sdl2::{event::Event, render::WindowCanvas, Sdl, VideoSubsystem};
 
+pub mod error;
+pub use error::*;
+
+pub mod scene;
 pub mod timer;
 
 #[allow(dead_code)]
@@ -11,8 +11,15 @@ pub struct Core {
     sdl_ctx: Sdl,
     video: VideoSubsystem,
     canvas: WindowCanvas,
-    timer: timer::Timer,
+
+    pub timer: timer::Timer,
+    pub scene_manager: scene::SceneManager,
+
     running: bool,
+}
+
+pub struct GameContext<'a> {
+    pub timer: &'a timer::Timer,
 }
 
 pub struct CoreBuilder {
@@ -31,7 +38,9 @@ impl Default for CoreBuilder {
     }
 }
 
+#[allow(dead_code)]
 impl CoreBuilder {
+    #[inline]
     pub fn new() -> Self {
         CoreBuilder::default()
     }
@@ -55,50 +64,64 @@ impl CoreBuilder {
         self.with_width(width).with_height(height)
     }
 
-    pub fn build(self) -> Result<Core, String> {
-        let sdl_ctx = sdl2::init()?;
-        let video = sdl_ctx.video()?;
+    pub fn build<S>(self, main_scene: S)-> FerResult<Core>
+    where S: scene::Scene + 'static {
+        let sdl_ctx = sdl2::init().map_err(FerError::SdlInitError)?;
+        let video = sdl_ctx.video().map_err(FerError::SdlVideoError)?;
 
         let window = video
             .window(&self.title[..], self.width, self.height)
             .position_centered()
             .opengl()
             .build()
-            .expect("Couldn't Initialize Window");
+            .map_err(FerError::SdlWindowError)?;
 
         let canvas = window
             .into_canvas()
             .accelerated()
             .present_vsync()
             .build()
-            .expect("Couldn't Create Window Canvas");
+            .map_err(FerError::SdlRenderError)?;
 
-        let timer = timer::Timer::new(&sdl_ctx)?;
+        let timer = timer::Timer::new();
+
+        let mut scene_manager = scene::SceneManager::new();
+        scene_manager.add_scene("MAIN", main_scene)?;
+        scene_manager.set_active_scene("MAIN")?;
 
         Ok(Core {
             sdl_ctx,
             video,
             canvas,
             timer,
+            scene_manager,
             running: true,
         })
     }
 }
 
 impl Core {
-    pub fn run(mut self) -> Result<(), String> {
+    pub fn run(mut self) -> FerResult {
         let mut event_pump = self.sdl_ctx.event_pump().unwrap();
 
         while self.running {
+            /* NOTE: PlaceHolder */
             for event in event_pump.poll_iter() {
                 match event {
-                    Event::Quit{..} => self.running = false,
+                    Event::Quit { .. } => self.running = false,
                     _ => (),
                 }
             }
 
+
             self.timer.update();
+
+            let ctx = GameContext {
+                timer: &self.timer,
+            };
+
             self.canvas.clear();
+            self.scene_manager.process(&ctx)?;
             self.canvas.present();
         }
 
