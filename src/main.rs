@@ -27,7 +27,8 @@ impl scene::Scene for MainScene {
 
     fn update(&mut self, ctx: &core::GameContext) -> core::FerResult {
         let dt = ctx.timer.get_dt();
-        println!("DT: {}", dt);
+        let fps = ctx.timer.get_fps();
+        println!("DT: {} | FPS: {}", dt, fps);
 
         Ok(())
     }
