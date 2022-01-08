@@ -10,6 +10,7 @@ pub enum FerError {
     SdlVideoError(String),
     SdlWindowError(WindowBuildError),
     SdlRenderError(IntegerOrSdlError),
+    SdlCanvasError(String),
 
     /* Core Internal Errors */
     SceneError(&'static str),
@@ -34,6 +35,7 @@ impl Display for FerError {
                     IntegerOrSdlError::IntegerOverflows(msg, code) => writeln!(format, "[SDL_Render Integer Overflow Error]: {} | {}", code, msg),
                 }
             }
+            FerError::SdlCanvasError(msg) => writeln!(format, "[SDL_Canvas Error]: {}", msg),
 
             FerError::SceneError(msg) => write!(format, "[Scene Manager ERROR]: {}", msg),
         }

@@ -1,11 +1,10 @@
-/* use std::{rc::Rc, cell::RefCell}; */
 use sdl2::{event::Event, render::WindowCanvas, Sdl, VideoSubsystem};
 
 pub mod error;
-pub use error::*;
-
 pub mod scene;
 pub mod timer;
+
+pub use error::*;
 
 #[allow(dead_code)]
 pub struct Core {
