@@ -1,8 +1,14 @@
-use sdl2::{event::Event, render::WindowCanvas, Sdl, VideoSubsystem};
+use sdl2::{
+    Sdl,
+    event::Event,
+    VideoSubsystem
+};
+use gl;
 
 pub mod error;
 pub mod scene;
 pub mod timer;
+pub mod graphics;
 
 pub use error::*;
 
@@ -10,8 +16,8 @@ pub use error::*;
 pub struct Core {
     sdl_ctx: Sdl,
     video: VideoSubsystem,
-    canvas: WindowCanvas,
 
+    graphics: graphics::Graphics,
     timer: timer::Timer,
     scene_manager: scene::SceneManager,
 
@@ -20,7 +26,6 @@ pub struct Core {
 
 pub struct GameContext<'a> {
     pub timer: &'a timer::Timer,
-    pub canvas: &'a mut WindowCanvas,
 }
 
 pub struct CoreBuilder {
@@ -70,6 +75,8 @@ impl CoreBuilder {
         let sdl_ctx = sdl2::init().map_err(FerError::SdlInitError)?;
         let video = sdl_ctx.video().map_err(FerError::SdlVideoError)?;
 
+        gl::load_with(|s| video.gl_get_proc_address(s) as *const std::ffi::c_void);
+
         let window = video
             .window(&self.title[..], self.width, self.height)
             .position_centered()
@@ -77,21 +84,14 @@ impl CoreBuilder {
             .build()
             .map_err(FerError::SdlWindowError)?;
 
-        let canvas = window
-            .into_canvas()
-            .accelerated()
-            .present_vsync()
-            .build()
-            .map_err(FerError::SdlRenderError)?;
-
+        let graphics = graphics::Graphics::new(&video, window)?;
         let timer = timer::Timer::new();
-
         let scene_manager = scene::SceneManager::new(main_scene)?;
 
         Ok(Core {
             sdl_ctx,
             video,
-            canvas,
+            graphics,
             timer,
             scene_manager,
             running: true,
@@ -112,15 +112,13 @@ impl Core {
                 }
             }
 
-
             self.timer.update();
 
-            self.canvas.clear();
+            self.graphics.clear();
             self.scene_manager.process(GameContext {
                 timer: &self.timer,
-                canvas: &mut self.canvas,
             })?;
-            self.canvas.present();
+            self.graphics.present();
         }
 
         Ok(())

@@ -12,6 +12,9 @@ pub enum FerError {
     SdlRenderError(IntegerOrSdlError),
     SdlCanvasError(String),
 
+    /* OpenGL Errors */
+    GlContextError(String),
+
     /* Core Internal Errors */
     SceneError(&'static str),
 }
@@ -36,6 +39,8 @@ impl Display for FerError {
                 }
             }
             FerError::SdlCanvasError(msg) => writeln!(format, "[SDL_Canvas Error]: {}", msg),
+
+            FerError::GlContextError(msg) => writeln!(format, "[GL_Context Error]: {}", msg),
 
             FerError::SceneError(msg) => write!(format, "[Scene Manager ERROR]: {}", msg),
         }

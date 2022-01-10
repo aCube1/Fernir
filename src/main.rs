@@ -1,6 +1,5 @@
 mod core;
 
-use sdl2::rect::Rect;
 use crate::core::scene;
 
 struct MainScene {
@@ -59,13 +58,7 @@ impl scene::Scene for MainScene {
         }
     }
 
-    fn render(&mut self, ctx: &mut core::GameContext) -> core::FerResult {
-        /* TODO: Implement Graphics Module */
-        /* NOTE: PlaceHolder */
-        ctx.canvas.set_draw_color(sdl2::pixels::Color::RGB(255, 0, 0));
-        ctx.canvas.fill_rect(Rect::new(0, 0, 64, 64)).map_err(core::FerError::SdlCanvasError)?;
-        ctx.canvas.set_draw_color(sdl2::pixels::Color::BLACK);
-
+    fn render(&mut self, _ctx: &mut core::GameContext) -> core::FerResult {
         Ok(())
     }
 }
@@ -90,13 +83,7 @@ impl scene::Scene for NepScene {
         }
     }
 
-    fn render(&mut self, ctx: &mut core::GameContext) -> core::FerResult {
-        /* TODO: Implement Graphics Module */
-        /* NOTE: PlaceHolder */
-        ctx.canvas.set_draw_color(sdl2::pixels::Color::RGB(0, 0, 255));
-        ctx.canvas.fill_rect(Rect::new(400, 300, 248, 128)).map_err(core::FerError::SdlCanvasError)?;
-        ctx.canvas.set_draw_color(sdl2::pixels::Color::BLACK);
-
+    fn render(&mut self, _ctx: &mut core::GameContext) -> core::FerResult {
         Ok(())
     }
 }
