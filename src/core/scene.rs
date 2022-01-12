@@ -1,5 +1,8 @@
+use crate::core::{
+    self,
+    error::{FerError, FerResult},
+};
 use std::collections::HashMap;
-use crate::core::{self, error::{FerError, FerResult}};
 
 pub trait Scene {
     fn load(&mut self) -> FerResult<Transition>;
@@ -23,10 +26,10 @@ pub enum Transition {
     SwitchDelete(&'static str), /* Delete Current Scene and Switch to Another. */
 }
 
-#[allow(dead_code)]
 impl SceneManager {
     pub fn new<S>(scene: S) -> FerResult<Self>
-    where S: Scene + 'static,
+    where
+        S: Scene + 'static,
     {
         let mut manager = SceneManager {
             active_scene: "MAIN",
@@ -59,7 +62,7 @@ impl SceneManager {
                     Ok(last_scene) => println!("{} Scene Switched to {}", last_scene, name), /* TODO: Use a Better Logger */
                     Err(error) => return Err(error),
                 }
-            },
+            }
             Transition::SwitchDelete(name) => {
                 self.remove_scene(self.active_scene)?;
                 match self.set_active_scene(name) {
@@ -72,10 +75,9 @@ impl SceneManager {
         Ok(())
     }
 
-    fn add_scene(&mut self, name: &'static str, mut scene: Box<dyn Scene>) -> FerResult
-    {
+    fn add_scene(&mut self, name: &'static str, mut scene: Box<dyn Scene>) -> FerResult {
         if self.scenes.contains_key(name) {
-            return Err(FerError::SceneError("Scene Name Has Already Been Taken!"))
+            return Err(FerError::SceneError("Scene Name Has Already Been Taken!"));
         }
 
         let transition = scene.load()?;
@@ -87,7 +89,7 @@ impl SceneManager {
 
     fn remove_scene(&mut self, name: &str) -> FerResult {
         if !self.scenes.contains_key(name) || name == "MAIN" {
-            return Err(FerError::SceneError("Cannot Delete Inexistent/MAIN Scene"))
+            return Err(FerError::SceneError("Cannot Delete Inexistent/MAIN Scene"));
         }
 
         let mut scene = self.scenes.remove(name).unwrap();
@@ -104,7 +106,7 @@ impl SceneManager {
 
     pub fn set_active_scene(&mut self, name: &'static str) -> FerResult<&'static str> {
         if !self.scenes.contains_key(name) {
-            return Err(FerError::SceneError("Scene Doesn't Exist!"))
+            return Err(FerError::SceneError("Scene Doesn't Exist!"));
         }
 
         let last_scene = self.active_scene;

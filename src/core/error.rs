@@ -1,5 +1,10 @@
+use image::ImageError;
+use sdl2::{
+    render::TextureValueError,
+    video::WindowBuildError,
+    IntegerOrSdlError
+};
 use std::fmt::{self, Display, Formatter};
-use sdl2::{IntegerOrSdlError, video::WindowBuildError};
 
 pub type FerResult<T = ()> = Result<T, FerError>;
 
@@ -8,41 +13,73 @@ pub enum FerError {
     /* SDL Errors */
     SdlInitError(String),
     SdlVideoError(String),
+    SdlCanvasError(String),
     SdlWindowError(WindowBuildError),
     SdlRenderError(IntegerOrSdlError),
-    SdlCanvasError(String),
+    SdlTextureError(TextureValueError),
 
     /* OpenGL Errors */
     GlContextError(String),
 
+    /* Image Errors */
+    ImageError(ImageError),
+
     /* Core Internal Errors */
     SceneError(&'static str),
+    GraphicsError(&'static str),
 }
 
 impl Display for FerError {
     fn fmt(&self, format: &mut Formatter<'_>) -> fmt::Result {
         match self {
-            FerError::SdlInitError(msg) => writeln!(format, "[SDL_Init Error]: {}", msg),
-            FerError::SdlVideoError(msg) => writeln!(format, "[SDL_Video Error]: {}", msg),
-            FerError::SdlWindowError(error) => {
-                match error {
-                    WindowBuildError::SdlError(msg) => writeln!(format, "[SDL_Window Error]: {}", msg),
-                    WindowBuildError::InvalidTitle(title) => writeln!(format, "[SDL_Window Error]: Invalid Title {}", title),
-                    WindowBuildError::WidthOverflows(width) => writeln!(format, "[SDL_Window Error]: Width Overflow ({})", width),
-                    WindowBuildError::HeightOverflows(height) => writeln!(format, "[SDL_Window Error]: Height Overflow ({})", height),
+            FerError::SdlInitError(msg) => writeln!(format, "[SDL_Init ERROR]: {}", msg),
+            FerError::SdlVideoError(msg) => writeln!(format, "[SDL_Video ERROR]: {}", msg),
+            FerError::SdlCanvasError(msg) => writeln!(format, "[SDL_Canvas ERROR]: {}", msg),
+            FerError::SdlWindowError(error) => match error {
+                WindowBuildError::SdlError(msg) => writeln!(format, "[SDL_Window ERROR]: {}", msg),
+                WindowBuildError::InvalidTitle(title) => {
+                    writeln!(format, "[SDL_Window ERROR]: Invalid Title {}", title)
                 }
-            }
-            FerError::SdlRenderError(error) => {
-                match error {
-                    IntegerOrSdlError::SdlError(msg) => writeln!(format, "[SDL_Render Error]: {}", msg),
-                    IntegerOrSdlError::IntegerOverflows(msg, code) => writeln!(format, "[SDL_Render Integer Overflow Error]: {} | {}", code, msg),
+                WindowBuildError::WidthOverflows(width) => {
+                    writeln!(format, "[SDL_Window ERROR]: Width Overflow ({})", width)
                 }
+                WindowBuildError::HeightOverflows(height) => {
+                    writeln!(format, "[SDL_Window ERROR]: Height Overflow ({})", height)
+                }
+            },
+            FerError::SdlRenderError(error) => match error {
+                IntegerOrSdlError::SdlError(msg) => writeln!(format, "[SDL_Render ERROR]: {}", msg),
+                IntegerOrSdlError::IntegerOverflows(msg, code) => writeln!(
+                    format,
+                    "[SDL_Render Integer Overflow Error]: {} | {}",
+                    code, msg
+                ),
+            },
+            FerError::SdlTextureError(error) => match error {
+                TextureValueError::HeightOverflows(..) | TextureValueError::WidthOverflows(..) => {
+                        writeln!(format, "[SDL_Texture Dimension Overflow ERROR]")
+                }
+                TextureValueError::SdlError(msg) => writeln!(format, "[SDL_Texture ERROR]: {}", msg),
+                _ => writeln!(format, "[SDL_Texture Unknown Error]"),
             }
-            FerError::SdlCanvasError(msg) => writeln!(format, "[SDL_Canvas Error]: {}", msg),
 
-            FerError::GlContextError(msg) => writeln!(format, "[GL_Context Error]: {}", msg),
+            FerError::GlContextError(msg) => writeln!(format, "[GL_Context ERROR]: {}", msg),
 
-            FerError::SceneError(msg) => write!(format, "[Scene Manager ERROR]: {}", msg),
+            FerError::ImageError(error) => match error {
+                ImageError::Decoding(decoding_error) => {
+                    writeln!(format, "[Image_Decoding ERROR]: {}", decoding_error)
+                }
+                ImageError::Limits(limit_error) => {
+                    writeln!(format, "[Image_Limits ERROR]: {}", limit_error)
+                }
+                ImageError::Unsupported(unsupported_error) => {
+                    writeln!(format, "[Image_Unsupported ERROR]: {}", unsupported_error)
+                }
+                _ => writeln!(format, "[Image ERROR]: Unknown"),
+            },
+
+            FerError::SceneError(msg) => writeln!(format, "[Scene Manager ERROR]: {}", msg),
+            FerError::GraphicsError(msg) => writeln!(format, "[Graphics Manager ERROR]: {}", msg),
         }
     }
 }

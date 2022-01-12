@@ -1,14 +1,10 @@
-use sdl2::{
-    Sdl,
-    event::Event,
-    VideoSubsystem
-};
 use gl;
+use sdl2::{event::Event, Sdl, VideoSubsystem};
 
 pub mod error;
+pub mod graphics;
 pub mod scene;
 pub mod timer;
-pub mod graphics;
 
 pub use error::*;
 
@@ -26,6 +22,7 @@ pub struct Core {
 
 pub struct GameContext<'a> {
     pub timer: &'a timer::Timer,
+    pub graphics: &'a mut graphics::Graphics,
 }
 
 pub struct CoreBuilder {
@@ -70,8 +67,10 @@ impl CoreBuilder {
         self.with_width(width).with_height(height)
     }
 
-    pub fn build<S>(self, main_scene: S)-> FerResult<Core>
-    where S: scene::Scene + 'static {
+    pub fn build<S>(self, main_scene: S) -> FerResult<Core>
+    where
+        S: scene::Scene + 'static,
+    {
         let sdl_ctx = sdl2::init().map_err(FerError::SdlInitError)?;
         let video = sdl_ctx.video().map_err(FerError::SdlVideoError)?;
 
@@ -115,9 +114,8 @@ impl Core {
             self.timer.update();
 
             self.graphics.clear();
-            self.scene_manager.process(GameContext {
-                timer: &self.timer,
-            })?;
+            self.scene_manager
+                .process(GameContext { timer: &self.timer, graphics: &mut self.graphics })?;
             self.graphics.present();
         }
 
