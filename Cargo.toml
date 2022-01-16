@@ -4,14 +4,5 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-gl = "0.14"
-
-[dependencies.image]
-version = "0.23"
-default-features = false
-features = ["png", "jpeg", "gif"]
-
-[dependencies.sdl2]
-version = "0.35.1"
-default-features = false
-features = ["unsafe_textures"]
+log = "0.4"
+ggez = "0.7"
