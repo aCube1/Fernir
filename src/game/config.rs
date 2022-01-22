@@ -1,20 +1,20 @@
-use std::{env, path, io::Write, fs::File};
-use log::*;
 use ggez::{
-    GameResult, ContextBuilder,
-    error::GameError,
     conf::{Backend, Conf, FullscreenType, NumSamples, WindowMode, WindowSetup},
+    error::GameError,
+    ContextBuilder, GameResult,
 };
-
+use log::*;
+use std::{env, fs::File, io::Write, path};
 
 pub fn load_config(ctx_builder: ContextBuilder) -> GameResult<ContextBuilder> {
     let mut conf = Conf::new()
-        .window_mode(WindowMode::default()
-                     .fullscreen_type(FullscreenType::Windowed)
-                     .resizable(false)
-                     .dimensions(800.0, 600.0))
-        .backend(Backend::default()
-                 .version(3, 3));
+        .window_mode(
+            WindowMode::default()
+                .fullscreen_type(FullscreenType::Windowed)
+                .resizable(false)
+                .dimensions(800.0, 600.0),
+        )
+        .backend(Backend::default().version(3, 3));
     conf.window_setup = WindowSetup {
         title: "Fernir".into(),
         samples: NumSamples::One,
@@ -25,13 +25,14 @@ pub fn load_config(ctx_builder: ContextBuilder) -> GameResult<ContextBuilder> {
 
     let mut resource_path: path::PathBuf;
 
-
     if let Ok(manifest_dir) = env::var("CARGO_MANIFEST_DIR") {
         resource_path = path::PathBuf::from(manifest_dir.clone());
         resource_path.push("assets");
 
         if !resource_path.is_dir() {
-            return Err(GameError::FilesystemError("Cannot Open Assets Directory".to_string()));
+            return Err(GameError::FilesystemError(
+                "Cannot Open Assets Directory".to_string(),
+            ));
         }
 
         let mut conf_path = path::PathBuf::from(manifest_dir);
@@ -47,10 +48,12 @@ pub fn load_config(ctx_builder: ContextBuilder) -> GameResult<ContextBuilder> {
             conf = Conf::from_toml_file(&mut conf_file)?;
         }
     } else {
-        return Err(GameError::FilesystemError("Cannot Get Manifest Dir".to_string()));
+        return Err(GameError::FilesystemError(
+            "Cannot Get Manifest Dir".to_string(),
+        ));
     }
 
-
-    Ok(ctx_builder.default_conf(conf)
+    Ok(ctx_builder
+        .default_conf(conf)
         .add_resource_path(resource_path))
 }

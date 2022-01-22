@@ -4,10 +4,11 @@ mod game;
 use game::Game;
 
 fn main() {
-    let (mut ctx, event_loop) = Game::setup()
-        .expect("Cannot Setup Game");
+    env_logger::init();
 
-    let game = Game::new(&mut ctx);
+    let (mut ctx, event_loop) = Game::setup().expect("Cannot Setup Game");
+
+    let game = Game::new(&mut ctx).expect("Cannot Create Game Handler");
 
     event::run(ctx, event_loop, game);
 }
